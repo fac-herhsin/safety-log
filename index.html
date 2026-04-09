@@ -46,8 +46,8 @@
             padding: 2px;
         }
         .checkbox-item input { 
-            width: 16px;
-            height: 16px;
+            width: 16px; 
+            height: 16px; 
             margin-right: 6px; 
             cursor: pointer;
         }
@@ -85,6 +85,19 @@
             font-size: 0.9rem;
             padding: 4px 10px;
         }
+
+        /* 載入動畫 */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #ffffff;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-100 p-2 md:p-8">
@@ -100,9 +113,15 @@
                     第二頁：現場相片
                 </button>
             </div>
-            <button onclick="window.print()" class="bg-green-500 text-white px-6 py-2 rounded-full font-bold hover:bg-green-600 transition shadow-md">
-                列印 / 存成 PDF
-            </button>
+            <div class="flex gap-2">
+                <button id="saveBtn" onclick="saveDataToGoogle()" class="bg-orange-500 text-white px-6 py-2 rounded-full font-bold hover:bg-orange-600 transition shadow-md flex items-center">
+                    <span id="saveLoader" class="loader hidden"></span>
+                    <span id="saveText">儲存至雲端</span>
+                </button>
+                <button onclick="window.print()" class="bg-green-500 text-white px-6 py-2 rounded-full font-bold hover:bg-green-600 transition shadow-md">
+                    列印 / PDF
+                </button>
+            </div>
         </div>
 
         <!-- 第一頁內容：主表單 -->
@@ -115,7 +134,7 @@
                 <tr>
                     <td class="bg-custom-header w-1/4 font-bold text-center">作業名稱</td>
                     <td class="w-1/2">
-                        <input type="text" value="每日下班前安衛、預知危險及裝備檢查" class="font-medium text-center">
+                        <input type="text" id="taskName" value="每日下班前安衛、預知危險及裝備檢查" class="font-medium text-center">
                     </td>
                     <td class="bg-custom-header w-12 text-center font-bold">日期</td>
                     <td class="bg-custom-tan">
@@ -124,40 +143,40 @@
                 </tr>
                 <tr>
                     <td class="bg-custom-header font-bold text-center">檢驗項目</td>
-                    <td><input type="text" value="廠區內生產機械、環境" class="text-center"></td>
+                    <td><input type="text" id="inspectItem" value="廠區內生產機械、環境" class="text-center"></td>
                     <td class="bg-custom-header text-center font-bold">地點</td>
-                    <td><input type="text" value="廠區內" class="text-center"></td>
+                    <td><input type="text" id="location" value="廠區內" class="text-center"></td>
                 </tr>
 
                 <tr><td colspan="4" class="section-title text-blue-800">安全危害檢查狀況、部分：</td></tr>
-                <tr><td colspan="4" class="h-20 align-top"><textarea rows="2">本日暫無</textarea></td></tr>
+                <tr><td colspan="4" class="h-20 align-top"><textarea id="safetyStatus" rows="2">本日暫無</textarea></td></tr>
                 
                 <tr><td colspan="4" class="section-title text-blue-800">衛生危害檢查狀況、部分：</td></tr>
-                <tr><td colspan="4" class="h-20 align-top"><textarea rows="2">本日暫無</textarea></td></tr>
+                <tr><td colspan="4" class="h-20 align-top"><textarea id="healthStatus" rows="2">本日暫無</textarea></td></tr>
                 
                 <tr><td colspan="4" class="section-title text-gray-700">改善建議：</td></tr>
-                <tr><td colspan="4" class="h-20 align-top"><textarea rows="2">本日暫無</textarea></td></tr>
+                <tr><td colspan="4" class="h-20 align-top"><textarea id="suggestions" rows="2">本日暫無</textarea></td></tr>
                 
                 <tr><td colspan="4" class="section-title">安全可能危害：(請以 ■ 標示)</td></tr>
                 <tr>
                     <td colspan="4">
-                        <div class="checkbox-group">
-                            <label class="checkbox-item"><input type="checkbox"> 墜落、滾落</label>
-                            <label class="checkbox-item"><input type="checkbox"> 跌倒</label>
-                            <label class="checkbox-item"><input type="checkbox"> 衝撞</label>
-                            <label class="checkbox-item"><input type="checkbox"> 物體飛落</label>
-                            <label class="checkbox-item"><input type="checkbox"> 感電</label>
-                            <label class="checkbox-item"><input type="checkbox"> 被撞</label>
-                            <label class="checkbox-item"><input type="checkbox"> 倒塌、崩塌</label>
-                            <label class="checkbox-item"><input type="checkbox"> 被夾、被捲</label>
-                            <label class="checkbox-item"><input type="checkbox"> 被切、割、擦傷</label>
-                            <label class="checkbox-item"><input type="checkbox"> 踩踏</label>
-                            <label class="checkbox-item"><input type="checkbox"> 火災</label>
-                            <label class="checkbox-item"><input type="checkbox"> 與高溫接觸</label>
-                            <label class="checkbox-item"><input type="checkbox"> 與有害物接觸</label>
-                            <label class="checkbox-item"><input type="checkbox"> 爆炸</label>
-                            <label class="checkbox-item"><input type="checkbox"> 物體破裂</label>
-                            <label class="checkbox-item"><input type="checkbox"> 交通事故</label>
+                        <div class="checkbox-group" id="group-safety">
+                            <label class="checkbox-item"><input type="checkbox" value="墜落、滾落"> 墜落、滾落</label>
+                            <label class="checkbox-item"><input type="checkbox" value="跌倒"> 跌倒</label>
+                            <label class="checkbox-item"><input type="checkbox" value="衝撞"> 衝撞</label>
+                            <label class="checkbox-item"><input type="checkbox" value="物體飛落"> 物體飛落</label>
+                            <label class="checkbox-item"><input type="checkbox" value="感電"> 感電</label>
+                            <label class="checkbox-item"><input type="checkbox" value="被撞"> 被撞</label>
+                            <label class="checkbox-item"><input type="checkbox" value="倒塌、崩塌"> 倒塌、崩塌</label>
+                            <label class="checkbox-item"><input type="checkbox" value="被夾、被捲"> 被夾、被捲</label>
+                            <label class="checkbox-item"><input type="checkbox" value="被切、割、擦傷"> 被切、割、擦傷</label>
+                            <label class="checkbox-item"><input type="checkbox" value="踩踏"> 踩踏</label>
+                            <label class="checkbox-item"><input type="checkbox" value="火災"> 火災</label>
+                            <label class="checkbox-item"><input type="checkbox" value="與高溫接觸"> 與高溫接觸</label>
+                            <label class="checkbox-item"><input type="checkbox" value="與有害物接觸"> 與有害物接觸</label>
+                            <label class="checkbox-item"><input type="checkbox" value="爆炸"> 爆炸</label>
+                            <label class="checkbox-item"><input type="checkbox" value="物體破裂"> 物體破裂</label>
+                            <label class="checkbox-item"><input type="checkbox" value="交通事故"> 交通事故</label>
                         </div>
                     </td>
                 </tr>
@@ -165,13 +184,13 @@
                 <tr><td colspan="4" class="section-title">衛生可能危害：(請以 ■ 標示)</td></tr>
                 <tr>
                     <td colspan="4">
-                        <div class="checkbox-group">
-                            <label class="checkbox-item"><input type="checkbox"> 粉塵呼吸道危害</label>
-                            <label class="checkbox-item"><input type="checkbox"> 化學物質中毒</label>
-                            <label class="checkbox-item"><input type="checkbox"> 磁碟機學生</label>
-                            <label class="checkbox-item"><input type="checkbox"> 細菌、病毒傳播</label>
-                            <label class="checkbox-item"><input type="checkbox"> 視力損失</label>
-                            <label class="checkbox-item"><input type="checkbox"> 噪音聽覺損失</label>
+                        <div class="checkbox-group" id="group-health">
+                            <label class="checkbox-item"><input type="checkbox" value="粉塵呼吸道危害"> 粉塵呼吸道危害</label>
+                            <label class="checkbox-item"><input type="checkbox" value="化學物質中毒"> 化學物質中毒</label>
+                            <label class="checkbox-item"><input type="checkbox" value="磁碟機學生"> 磁碟機學生</label>
+                            <label class="checkbox-item"><input type="checkbox" value="細菌、病毒傳播"> 細菌、病毒傳播</label>
+                            <label class="checkbox-item"><input type="checkbox" value="視力損失"> 視力損失</label>
+                            <label class="checkbox-item"><input type="checkbox" value="噪音聽覺損失"> 噪音聽覺損失</label>
                         </div>
                     </td>
                 </tr>
@@ -179,24 +198,24 @@
                 <tr><td colspan="4" class="section-title">日常巡檢項目：(請以 ■ 標示)</td></tr>
                 <tr>
                     <td colspan="4">
-                        <div class="checkbox-group">
-                            <label class="checkbox-item"><input type="checkbox"> 第一棟</label>
-                            <label class="checkbox-item"><input type="checkbox"> 第二棟</label>
-                            <label class="checkbox-item"><input type="checkbox"> 第三棟</label>
-                            <label class="checkbox-item"><input type="checkbox"> 龍門</label>
-                            <label class="checkbox-item"><input type="checkbox"> 倉庫</label>
-                            <label class="checkbox-item"><input type="checkbox"> 噴漆倉庫</label>
-                            <label class="checkbox-item"><input type="checkbox"> 停車場</label>
-                            <label class="checkbox-item"><input type="checkbox"> 工具歸位</label>
-                            <label class="checkbox-item"><input type="checkbox"> 垃圾清潔</label>
-                            <label class="checkbox-item"><input type="checkbox"> 缺等巡檢</label>
-                            <label class="checkbox-item"><input type="checkbox"> 電箱關閉</label>
-                            <label class="checkbox-item"><input type="checkbox"> 天車位置巡檢</label>
-                            <label class="checkbox-item"><input type="checkbox"> 空壓機排水</label>
-                            <label class="checkbox-item"><input type="checkbox"> 鐵條布繩歸位</label>
-                            <label class="checkbox-item"><input type="checkbox"> 電線管線歸位</label>
-                            <label class="checkbox-item"><input type="checkbox"> 焊條切片亂丟</label>
-                            <label class="checkbox-item"><input type="checkbox"> 抽水機清潔</label>
+                        <div class="checkbox-group" id="group-daily">
+                            <label class="checkbox-item"><input type="checkbox" value="第一棟"> 第一棟</label>
+                            <label class="checkbox-item"><input type="checkbox" value="第二棟"> 第二棟</label>
+                            <label class="checkbox-item"><input type="checkbox" value="第三棟"> 第三棟</label>
+                            <label class="checkbox-item"><input type="checkbox" value="龍門"> 龍門</label>
+                            <label class="checkbox-item"><input type="checkbox" value="倉庫"> 倉庫</label>
+                            <label class="checkbox-item"><input type="checkbox" value="噴漆倉庫"> 噴漆倉庫</label>
+                            <label class="checkbox-item"><input type="checkbox" value="停車場"> 停車場</label>
+                            <label class="checkbox-item"><input type="checkbox" value="工具歸位"> 工具歸位</label>
+                            <label class="checkbox-item"><input type="checkbox" value="垃圾清潔"> 垃圾清潔</label>
+                            <label class="checkbox-item"><input type="checkbox" value="缺等巡檢"> 缺等巡檢</label>
+                            <label class="checkbox-item"><input type="checkbox" value="電箱關閉"> 電箱關閉</label>
+                            <label class="checkbox-item"><input type="checkbox" value="天車位置巡檢"> 天車位置巡檢</label>
+                            <label class="checkbox-item"><input type="checkbox" value="空壓機排水"> 空壓機排水</label>
+                            <label class="checkbox-item"><input type="checkbox" value="鐵條布繩歸位"> 鐵條布繩歸位</label>
+                            <label class="checkbox-item"><input type="checkbox" value="電線管線歸位"> 電線管線歸位</label>
+                            <label class="checkbox-item"><input type="checkbox" value="焊條切片亂丟"> 焊條切片亂丟</label>
+                            <label class="checkbox-item"><input type="checkbox" value="抽水機清潔"> 抽水機清潔</label>
                         </div>
                     </td>
                 </tr>
@@ -204,11 +223,11 @@
                 <tr><td colspan="4" class="section-title">檢查方式：(請以 ■ 標示)</td></tr>
                 <tr>
                     <td colspan="4">
-                        <div class="checkbox-group">
-                            <label class="checkbox-item"><input type="checkbox" checked> 目視</label>
-                            <label class="checkbox-item"><input type="checkbox"> 試運轉</label>
-                            <label class="checkbox-item"><input type="checkbox"> 拆解檢查</label>
-                            <label class="checkbox-item"><input type="checkbox"> 儀器檢查</label>
+                        <div class="checkbox-group" id="group-method">
+                            <label class="checkbox-item"><input type="checkbox" value="目視" checked> 目視</label>
+                            <label class="checkbox-item"><input type="checkbox" value="試運轉"> 試運轉</label>
+                            <label class="checkbox-item"><input type="checkbox" value="拆解檢查"> 拆解檢查</label>
+                            <label class="checkbox-item"><input type="checkbox" value="儀器檢查"> 儀器檢查</label>
                         </div>
                     </td>
                 </tr>
@@ -216,17 +235,19 @@
                 <tr><td colspan="4" class="section-title">紀錄方式：(請以 ■ 標示)</td></tr>
                 <tr>
                     <td colspan="4">
-                        <div class="checkbox-group">
-                            <label class="checkbox-item"><input type="checkbox" checked> 文字紀錄</label>
-                            <label class="checkbox-item"><input type="checkbox"> 照片記錄</label>
-                            <label class="checkbox-item"><input type="checkbox"> 影片紀錄</label>
-                            <label class="checkbox-item"><input type="checkbox"> 紙本掃描上傳雲端</label>
-                            <label class="checkbox-item"><input type="checkbox"> 其他 <input type="text" class="border-b border-black ml-1 w-24"></label>
+                        <div class="checkbox-group" id="group-record">
+                            <label class="checkbox-item"><input type="checkbox" value="文字紀錄" checked> 文字紀錄</label>
+                            <label class="checkbox-item"><input type="checkbox" value="照片記錄"> 照片記錄</label>
+                            <label class="checkbox-item"><input type="checkbox" value="影片紀錄"> 影片紀錄</label>
+                            <label class="checkbox-item"><input type="checkbox" value="紙本掃描上傳雲端"> 紙本掃描上傳雲端</label>
+                            <label class="checkbox-item">
+                                其他 <input type="text" id="recordOther" class="border-b border-black ml-1 w-24">
+                            </label>
                         </div>
                     </td>
                 </tr>
 
-                <!-- 簽名區域依照圖片優化 -->
+                <!-- 簽名區域恢復 -->
                 <tr>
                     <td class="bg-white text-sm text-center">何鑫實業股份有限公司</td>
                     <td class="bg-custom-peach font-bold text-center">巡檢人員簽名：</td>
@@ -245,7 +266,7 @@
                 <tr>
                     <td colspan="4" class="bg-gray-800 text-white font-bold text-center py-1">主管批示：</td>
                 </tr>
-                <tr><td colspan="4" class="h-28 bg-custom-tan"><textarea></textarea></td></tr>
+                <tr><td colspan="4" class="h-28 bg-custom-tan"><textarea id="bossNote"></textarea></td></tr>
             </table>
         </div>
 
@@ -278,6 +299,11 @@
     </div>
 
     <script>
+        // *** 請將你部署後的 GAS Web App 網址貼在下方 ***
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxwI62lUpE5nHqEy9GO_X69d6YH_9vXtheBqXl52dFpYvp7qSuHycrrrhokBm-kom3p/exec";
+
+        let uploadedPhotos = []; 
+
         function switchPage(pageId) {
             const p1 = document.getElementById('page1');
             const p2 = document.getElementById('page2');
@@ -287,13 +313,13 @@
             if (pageId === 'page1') {
                 p1.classList.remove('hidden');
                 p2.classList.add('hidden');
-                b1.className = b1.className.replace('bg-blue-800 text-white', 'bg-white text-blue-700');
-                b2.className = b2.className.replace('bg-white text-blue-700', 'bg-blue-800 text-white');
+                b1.className = "px-4 py-2 rounded-full font-bold bg-white text-blue-700 transition shadow";
+                b2.className = "px-4 py-2 rounded-full font-bold bg-blue-800 text-white hover:bg-blue-900 transition";
             } else {
                 p2.classList.remove('hidden');
                 p1.classList.add('hidden');
-                b2.className = b2.className.replace('bg-blue-800 text-white', 'bg-white text-blue-700');
-                b1.className = b1.className.replace('bg-white text-blue-700', 'bg-blue-800 text-white');
+                b2.className = "px-4 py-2 rounded-full font-bold bg-white text-blue-700 transition shadow";
+                b1.className = "px-4 py-2 rounded-full font-bold bg-blue-800 text-white hover:bg-blue-900 transition";
             }
         }
 
@@ -305,17 +331,82 @@
             Array.from(files).forEach(file => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    const base64Data = e.target.result;
+                    const photoId = Date.now() + Math.random();
+                    
+                    uploadedPhotos.push({ id: photoId, base64: base64Data, type: file.type });
+
                     const card = document.createElement('div');
                     card.className = 'photo-card relative shadow-md';
+                    card.dataset.id = photoId;
                     card.innerHTML = `
-                        <button onclick="this.parentElement.remove()" class="no-print absolute -top-3 -right-3 bg-red-600 text-white w-8 h-8 rounded-full border-2 border-white font-bold shadow">✕</button>
-                        <img src="${e.target.result}" class="photo-preview">
+                        <button onclick="removePhoto(${photoId})" class="no-print absolute -top-3 -right-3 bg-red-600 text-white w-8 h-8 rounded-full border-2 border-white font-bold shadow">✕</button>
+                        <img src="${base64Data}" class="photo-preview">
                         <textarea placeholder="相片描述..." class="text-sm border-b border-gray-300 p-2" rows="2"></textarea>
                     `;
                     container.appendChild(card);
                 };
                 reader.readAsDataURL(file);
             });
+        }
+
+        function removePhoto(id) {
+            uploadedPhotos = uploadedPhotos.filter(p => p.id !== id);
+            const el = document.querySelector(`[data-id="${id}"]`);
+            if (el) el.remove();
+            if (uploadedPhotos.length === 0) {
+                document.getElementById('photoContainer').innerHTML = '<div class="no-print text-gray-400 italic text-center col-span-2 py-20">目前尚無照片。</div>';
+            }
+        }
+
+        async function saveDataToGoogle() {
+            const btn = document.getElementById('saveBtn');
+            const loader = document.getElementById('saveLoader');
+            const text = document.getElementById('saveText');
+
+            const getCheckedValues = (groupId) => {
+                return Array.from(document.querySelectorAll(`${groupId} input:checked`)).map(i => i.value);
+            };
+
+            const payload = {
+                currentDate: document.getElementById('currentDate').value,
+                taskName: document.getElementById('taskName').value,
+                inspectItem: document.getElementById('inspectItem').value,
+                location: document.getElementById('location').value,
+                safetyStatus: document.getElementById('safetyStatus').value,
+                healthStatus: document.getElementById('healthStatus').value,
+                suggestions: document.getElementById('suggestions').value,
+                safetyHazards: getCheckedValues('#group-safety'),
+                healthHazards: getCheckedValues('#group-health'),
+                dailyInspections: getCheckedValues('#group-daily'),
+                inspectMethod: getCheckedValues('#group-method'),
+                recordMethod: getCheckedValues('#group-record'),
+                photos: uploadedPhotos 
+            };
+
+            btn.disabled = true;
+            loader.classList.remove('hidden');
+            text.innerText = "儲存中...";
+
+            try {
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                if (result.result === "success") {
+                    alert("✅ 儲存成功！");
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                alert("❌ 儲存失敗：" + error.message);
+            } finally {
+                btn.disabled = false;
+                loader.classList.add('hidden');
+                text.innerText = "儲存至雲端";
+            }
         }
 
         window.onload = function() {
