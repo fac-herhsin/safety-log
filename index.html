@@ -98,6 +98,25 @@
             margin-right: 8px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* 歷史紀錄表格 */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .history-table th {
+            background-color: #1e40af;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        .history-table tr:nth-child(even) { background-color: #f3f4f6; }
+        .history-container {
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+        }
     </style>
 </head>
 <body class="bg-gray-100 p-2 md:p-8">
@@ -105,12 +124,15 @@
     <div class="max-w-4xl mx-auto container">
         <!-- 功能控制導覽列 -->
         <div class="no-print mb-4 bg-blue-700 text-white rounded-lg shadow-lg p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex gap-2 text-sm sm:text-base">
-                <button onclick="switchPage('page1')" id="btn-page1" class="px-4 py-2 rounded-full font-bold bg-white text-blue-700 transition shadow">
+            <div class="flex flex-wrap gap-2 text-sm sm:text-base justify-center">
+                <button onclick="switchPage('page1')" id="btn-page1" class="page-btn px-4 py-2 rounded-full font-bold bg-white text-blue-700 transition shadow">
                     第一頁：勞安日誌
                 </button>
-                <button onclick="switchPage('page2')" id="btn-page2" class="px-4 py-2 rounded-full font-bold bg-blue-800 text-white hover:bg-blue-900 transition">
+                <button onclick="switchPage('page2')" id="btn-page2" class="page-btn px-4 py-2 rounded-full font-bold bg-blue-800 text-white hover:bg-blue-900 transition">
                     第二頁：現場相片
+                </button>
+                <button onclick="switchPage('page3')" id="btn-page3" class="page-btn px-4 py-2 rounded-full font-bold bg-blue-800 text-white hover:bg-blue-900 transition">
+                    第三頁：歷史紀錄
                 </button>
             </div>
             <div class="flex gap-2">
@@ -125,7 +147,7 @@
         </div>
 
         <!-- 第一頁內容：主表單 -->
-        <div id="page1" class="bg-white shadow-xl p-0">
+        <div id="page1" class="content-page bg-white shadow-xl p-0">
             <div class="text-center py-6 border-b-2 border-black">
                 <h2 class="text-2xl font-bold tracking-widest text-black">何鑫實業股份有限公司 - 勞安日誌</h2>
             </div>
@@ -247,7 +269,7 @@
                     </td>
                 </tr>
 
-                <!-- 簽名區域恢復 -->
+                <!-- 簽名區域 -->
                 <tr>
                     <td class="bg-white text-sm text-center">何鑫實業股份有限公司</td>
                     <td class="bg-custom-peach font-bold text-center">巡檢人員簽名：</td>
@@ -271,7 +293,7 @@
         </div>
 
         <!-- 第二頁內容：照片記錄 -->
-        <div id="page2" class="bg-white shadow-xl p-6 hidden page-break">
+        <div id="page2" class="content-page bg-white shadow-xl p-6 hidden page-break">
             <div class="text-center py-4 border-b-2 border-black mb-8">
                 <h2 class="text-2xl font-bold tracking-widest text-gray-800">何鑫實業股份有限公司 - 現場照片記錄</h2>
             </div>
@@ -296,30 +318,103 @@
                 </div>
             </div>
         </div>
+
+        <!-- 第三頁內容：歷史紀錄 -->
+        <div id="page3" class="content-page bg-white shadow-xl p-6 hidden">
+            <div class="flex justify-between items-center mb-6 border-b-2 border-blue-800 pb-4">
+                <h2 class="text-2xl font-bold text-blue-800">歷史紀錄查詢</h2>
+                <button onclick="fetchHistory()" class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition flex items-center font-bold">
+                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    重新整理
+                </button>
+            </div>
+
+            <div id="historyLoader" class="text-center py-20 hidden">
+                <div class="loader !w-10 !h-10 !border-blue-700 !border-t-transparent mb-4"></div>
+                <p class="text-gray-500 font-bold">正在從雲端抓取資料...</p>
+            </div>
+
+            <div class="history-container rounded-lg shadow-inner bg-gray-50">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th class="p-3">日期</th>
+                            <th class="p-3">作業名稱</th>
+                            <th class="p-3">地點</th>
+                            <th class="p-3">改善建議</th>
+                            <th class="p-3">照片</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <!-- 資料將由 JS 動態插入 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>
-        // *** 請將你部署後的 GAS Web App 網址貼在下方 ***
+        // *** GAS Web App 網址 ***
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxwI62lUpE5nHqEy9GO_X69d6YH_9vXtheBqXl52dFpYvp7qSuHycrrrhokBm-kom3p/exec";
 
         let uploadedPhotos = []; 
 
         function switchPage(pageId) {
-            const p1 = document.getElementById('page1');
-            const p2 = document.getElementById('page2');
-            const b1 = document.getElementById('btn-page1');
-            const b2 = document.getElementById('btn-page2');
+            // 切換隱藏/顯示
+            document.querySelectorAll('.content-page').forEach(page => page.classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
 
-            if (pageId === 'page1') {
-                p1.classList.remove('hidden');
-                p2.classList.add('hidden');
-                b1.className = "px-4 py-2 rounded-full font-bold bg-white text-blue-700 transition shadow";
-                b2.className = "px-4 py-2 rounded-full font-bold bg-blue-800 text-white hover:bg-blue-900 transition";
-            } else {
-                p2.classList.remove('hidden');
-                p1.classList.add('hidden');
-                b2.className = "px-4 py-2 rounded-full font-bold bg-white text-blue-700 transition shadow";
-                b1.className = "px-4 py-2 rounded-full font-bold bg-blue-800 text-white hover:bg-blue-900 transition";
+            // 切換按鈕樣式
+            document.querySelectorAll('.page-btn').forEach(btn => {
+                btn.className = "page-btn px-4 py-2 rounded-full font-bold bg-blue-800 text-white hover:bg-blue-900 transition";
+            });
+            const activeBtn = document.getElementById(`btn-${pageId}`);
+            activeBtn.className = "page-btn px-4 py-2 rounded-full font-bold bg-white text-blue-700 transition shadow";
+
+            // 如果切換到歷史紀錄，自動抓取
+            if (pageId === 'page3') {
+                fetchHistory();
+            }
+        }
+
+        async function fetchHistory() {
+            const body = document.getElementById('historyBody');
+            const loader = document.getElementById('historyLoader');
+            
+            body.innerHTML = '';
+            loader.classList.remove('hidden');
+
+            try {
+                // 發送 GET 請求 (GAS 需實作 doGet)
+                const response = await fetch(GAS_URL);
+                const data = await response.json();
+
+                if (data.status === "success") {
+                    const records = data.data;
+                    if (records.length === 0) {
+                        body.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-gray-400">尚無紀錄</td></tr>';
+                    } else {
+                        // 倒序顯示（最新的在上面），假設第一列是標題所以從 index 1 開始
+                        records.slice(1).reverse().forEach(row => {
+                            const tr = document.createElement('tr');
+                            // 欄位索引根據你的試算表結構調整
+                            tr.innerHTML = `
+                                <td class="p-3 text-center border-r">${row[0] || ''}</td>
+                                <td class="p-3 border-r">${row[1] || ''}</td>
+                                <td class="p-3 text-center border-r">${row[3] || ''}</td>
+                                <td class="p-3 border-r">${row[6] || ''}</td>
+                                <td class="p-3 text-center">
+                                    ${row[12] ? `<a href="${row[12]}" target="_blank" class="text-blue-600 underline font-bold">查看照片</a>` : '無'}
+                                </td>
+                            `;
+                            body.appendChild(tr);
+                        });
+                    }
+                }
+            } catch (error) {
+                body.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-red-500">無法讀取資料：${error.message}</td></tr>`;
+            } finally {
+                loader.classList.add('hidden');
             }
         }
 
@@ -397,6 +492,7 @@
                 
                 if (result.result === "success") {
                     alert("✅ 儲存成功！");
+                    // 儲存後如果是切換到歷史頁面會看到新的
                 } else {
                     throw new Error(result.error);
                 }
@@ -417,13 +513,13 @@
             document.getElementById('currentDate').value = `${year} 年 ${month} 月 ${day} 日`;
 
             window.onbeforeprint = () => {
-                document.getElementById('page1').classList.remove('hidden');
-                document.getElementById('page2').classList.remove('hidden');
+                document.querySelectorAll('.content-page').forEach(p => p.classList.remove('hidden'));
+                document.getElementById('page3').classList.add('hidden'); // 列印不印歷史紀錄
             };
             window.onafterprint = () => {
-                const isP1 = document.getElementById('btn-page1').classList.contains('bg-white');
-                if (isP1) document.getElementById('page2').classList.add('hidden');
-                else document.getElementById('page1').classList.add('hidden');
+                // 恢復原本顯示的頁面
+                const activeId = document.querySelector('.page-btn.bg-white').id.replace('btn-', '');
+                switchPage(activeId);
             };
         }
     </script>
