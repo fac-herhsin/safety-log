@@ -99,24 +99,21 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 歷史紀錄表格 */
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-        }
-        .history-table th {
-            background-color: #1e40af;
-            color: white;
-            position: sticky;
-            top: 0;
-        }
-        .history-table tr:nth-child(even) { background-color: #f3f4f6; }
+        /* 歷史紀錄優化 */
         .history-container {
-            max-height: 600px;
+            max-height: 700px;
             overflow-y: auto;
-            border: 1px solid #ccc;
         }
+        .record-card {
+            border-left: 5px solid #1e3a8a;
+            transition: all 0.3s ease;
+        }
+        .record-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .tag-blue { background-color: #dbeafe; color: #1e40af; }
+        .tag-orange { background-color: #ffedd5; color: #9a3412; }
     </style>
 </head>
 <body class="bg-gray-100 p-2 md:p-8">
@@ -319,102 +316,139 @@
             </div>
         </div>
 
-        <!-- 第三頁內容：歷史紀錄 -->
+        <!-- 第三頁內容：歷史紀錄 (詳細資料展開版) -->
         <div id="page3" class="content-page bg-white shadow-xl p-6 hidden">
-            <div class="flex justify-between items-center mb-6 border-b-2 border-blue-800 pb-4">
-                <h2 class="text-2xl font-bold text-blue-800">歷史紀錄查詢</h2>
-                <button onclick="fetchHistory()" class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition flex items-center font-bold">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b-2 border-orange-500 pb-4 gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-blue-900">歷史日誌紀錄庫</h2>
+                    <p class="text-sm text-gray-500 mt-1">點擊卡片可展開完整危害情況與勾選內容</p>
+                </div>
+                <button onclick="fetchHistory()" class="bg-orange-500 text-white px-6 py-2 rounded-full hover:bg-orange-600 transition flex items-center font-bold shadow-md">
                     <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                    重新整理
+                    刷新資料
                 </button>
             </div>
 
             <div id="historyLoader" class="text-center py-20 hidden">
                 <div class="loader !w-10 !h-10 !border-blue-700 !border-t-transparent mb-4"></div>
-                <p class="text-gray-500 font-bold">正在從雲端抓取資料...</p>
+                <p class="text-gray-500 font-bold">載入中...</p>
             </div>
 
-            <div class="history-container rounded-lg shadow-inner bg-gray-50">
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th class="p-3">日期</th>
-                            <th class="p-3">作業名稱</th>
-                            <th class="p-3">地點</th>
-                            <th class="p-3">改善建議</th>
-                            <th class="p-3">照片</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyBody">
-                        <!-- 資料將由 JS 動態插入 -->
-                    </tbody>
-                </table>
+            <div id="historyList" class="history-container space-y-4">
+                <!-- 由 JS 插入 Record Cards -->
             </div>
         </div>
     </div>
 
     <script>
-        // *** GAS Web App 網址 ***
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxwI62lUpE5nHqEy9GO_X69d6YH_9vXtheBqXl52dFpYvp7qSuHycrrrhokBm-kom3p/exec";
 
         let uploadedPhotos = []; 
 
         function switchPage(pageId) {
-            // 切換隱藏/顯示
             document.querySelectorAll('.content-page').forEach(page => page.classList.add('hidden'));
             document.getElementById(pageId).classList.remove('hidden');
-
-            // 切換按鈕樣式
             document.querySelectorAll('.page-btn').forEach(btn => {
                 btn.className = "page-btn px-4 py-2 rounded-full font-bold bg-blue-800 text-white hover:bg-blue-900 transition";
             });
             const activeBtn = document.getElementById(`btn-${pageId}`);
             activeBtn.className = "page-btn px-4 py-2 rounded-full font-bold bg-white text-blue-700 transition shadow";
 
-            // 如果切換到歷史紀錄，自動抓取
-            if (pageId === 'page3') {
-                fetchHistory();
-            }
+            if (pageId === 'page3') fetchHistory();
         }
 
         async function fetchHistory() {
-            const body = document.getElementById('historyBody');
+            const list = document.getElementById('historyList');
             const loader = document.getElementById('historyLoader');
-            
-            body.innerHTML = '';
+            list.innerHTML = '';
             loader.classList.remove('hidden');
 
             try {
-                // 發送 GET 請求 (GAS 需實作 doGet)
                 const response = await fetch(GAS_URL);
                 const data = await response.json();
 
                 if (data.status === "success") {
                     const records = data.data;
-                    if (records.length === 0) {
-                        body.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-gray-400">尚無紀錄</td></tr>';
+                    if (records.length <= 1) {
+                        list.innerHTML = '<div class="text-center py-20 text-gray-400">目前尚無紀錄</div>';
                     } else {
-                        // 倒序顯示（最新的在上面），假設第一列是標題所以從 index 1 開始
-                        records.slice(1).reverse().forEach(row => {
-                            const tr = document.createElement('tr');
-                            // 欄位索引根據你的試算表結構調整
-                            tr.innerHTML = `
-                                <td class="p-3 text-center border-r">${row[0] || ''}</td>
-                                <td class="p-3 border-r">${row[1] || ''}</td>
-                                <td class="p-3 text-center border-r">${row[3] || ''}</td>
-                                <td class="p-3 border-r">${row[6] || ''}</td>
-                                <td class="p-3 text-center">
-                                    ${row[12] ? `<a href="${row[12]}" target="_blank" class="text-blue-600 underline font-bold">查看照片</a>` : '無'}
-                                </td>
+                        // 倒序顯示最新
+                        records.slice(1).reverse().forEach((row, index) => {
+                            const card = document.createElement('div');
+                            card.className = "record-card bg-white border border-gray-200 rounded-lg p-4 shadow-sm cursor-pointer";
+                            
+                            // 欄位對應：
+                            // 0:填寫日期, 1:作業名稱, 2:檢驗項目, 3:地點, 4:安全危害情況, 5:衛生危害情況, 
+                            // 6:改善建議, 7:安全危害勾選, 8:衛生危害勾選, 9:巡檢項目勾選, 10:檢查方式, 11:紀錄方式, 12:相片URL
+                            
+                            card.innerHTML = `
+                                <div onclick="toggleDetail(${index})" class="flex justify-between items-start">
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-bold rounded">${row[0]}</span>
+                                            <span class="text-gray-500 text-xs">${row[3]}</span>
+                                        </div>
+                                        <h3 class="font-bold text-gray-800">${row[1]}</h3>
+                                    </div>
+                                    <svg id="icon-${index}" class="w-6 h-6 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                                
+                                <div id="detail-${index}" class="hidden mt-4 pt-4 border-t border-dashed border-gray-200 space-y-3">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="p-2 bg-blue-50 rounded">
+                                            <p class="text-xs font-bold text-blue-700 mb-1">⚠️ 安全危害情況</p>
+                                            <p class="text-sm text-gray-700">${row[4] || '無'}</p>
+                                        </div>
+                                        <div class="p-2 bg-green-50 rounded">
+                                            <p class="text-xs font-bold text-green-700 mb-1">🩺 衛生危害情況</p>
+                                            <p class="text-sm text-gray-700">${row[5] || '無'}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="p-2 bg-orange-50 rounded">
+                                        <p class="text-xs font-bold text-orange-700 mb-1">💡 改善建議</p>
+                                        <p class="text-sm text-gray-700">${row[6] || '無'}</p>
+                                    </div>
+
+                                    <div class="text-xs space-y-1 bg-gray-50 p-2 rounded border border-gray-100">
+                                        <p><span class="font-bold text-gray-600">勾選項目：</span> ${row[9] || '未勾選'}</p>
+                                        <p><span class="font-bold text-gray-600">安全危害：</span> ${row[7] || '未勾選'}</p>
+                                        <p><span class="font-bold text-gray-600">衛生危害：</span> ${row[8] || '未勾選'}</p>
+                                        <p><span class="font-bold text-gray-600">紀錄方式：</span> ${row[11] || ''}</p>
+                                    </div>
+
+                                    ${row[12] ? `
+                                        <a href="${row[12]}" target="_blank" class="block w-full text-center py-2 bg-blue-600 text-white rounded-md font-bold text-sm shadow-sm hover:bg-blue-700 transition mt-2">
+                                            🔗 開啟現場相片連結
+                                        </a>
+                                    ` : ''}
+                                </div>
                             `;
-                            body.appendChild(tr);
+                            list.appendChild(card);
                         });
                     }
                 }
             } catch (error) {
-                body.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-red-500">無法讀取資料：${error.message}</td></tr>`;
+                list.innerHTML = `<div class="p-4 bg-red-50 text-red-600 rounded">發生錯誤：${error.message}</div>`;
             } finally {
                 loader.classList.add('hidden');
+            }
+        }
+
+        function toggleDetail(index) {
+            const detail = document.getElementById(`detail-${index}`);
+            const icon = document.getElementById(`icon-${index}`);
+            const isHidden = detail.classList.contains('hidden');
+            
+            // 先關閉其他的（可選）
+            // document.querySelectorAll('[id^="detail-"]').forEach(el => el.classList.add('hidden'));
+
+            if (isHidden) {
+                detail.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                detail.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
             }
         }
 
@@ -428,9 +462,7 @@
                 reader.onload = function(e) {
                     const base64Data = e.target.result;
                     const photoId = Date.now() + Math.random();
-                    
                     uploadedPhotos.push({ id: photoId, base64: base64Data, type: file.type });
-
                     const card = document.createElement('div');
                     card.className = 'photo-card relative shadow-md';
                     card.dataset.id = photoId;
@@ -484,18 +516,10 @@
             text.innerText = "儲存中...";
 
             try {
-                const response = await fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
+                const response = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const result = await response.json();
-                
-                if (result.result === "success") {
-                    alert("✅ 儲存成功！");
-                    // 儲存後如果是切換到歷史頁面會看到新的
-                } else {
-                    throw new Error(result.error);
-                }
+                if (result.result === "success") alert("✅ 儲存成功！");
+                else throw new Error(result.error);
             } catch (error) {
                 alert("❌ 儲存失敗：" + error.message);
             } finally {
@@ -514,10 +538,9 @@
 
             window.onbeforeprint = () => {
                 document.querySelectorAll('.content-page').forEach(p => p.classList.remove('hidden'));
-                document.getElementById('page3').classList.add('hidden'); // 列印不印歷史紀錄
+                document.getElementById('page3').classList.add('hidden'); 
             };
             window.onafterprint = () => {
-                // 恢復原本顯示的頁面
                 const activeId = document.querySelector('.page-btn.bg-white').id.replace('btn-', '');
                 switchPage(activeId);
             };
