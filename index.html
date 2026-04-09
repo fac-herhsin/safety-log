@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>何鑫實業股份有限公司 - 勞安日誌系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 列印樣式設定 */
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white; padding: 0; }
+            .container { border: none; max-width: 100%; margin: 0; box-shadow: none; }
+            .page-break { page-break-before: always; }
+        }
+
+        /* 基礎表格樣式 */
+        table td, table th {
+            border: 1px solid #000;
+            padding: 8px;
+        }
+        .bg-custom-header { background-color: #f8f9fa; }
+        .bg-custom-peach { background-color: #ffe5d9; }
+        .bg-custom-tan { background-color: #fdf0d5; }
+        
+        input[type="text"], textarea {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+        }
+        textarea { resize: none; }
+
+        /* 勾選框佈局 */
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 6px;
+            padding: 8px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 2px;
+        }
+        .checkbox-item input { 
+            width: 16px;
+            height: 16px;
+            margin-right: 6px; 
+            cursor: pointer;
+        }
+        
+        /* 相片預覽樣式 */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        @media (max-width: 640px) {
+            .photo-grid { grid-template-columns: 1fr; }
+        }
+        .photo-card {
+            border: 1px solid #ddd;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: white;
+            border-radius: 6px;
+        }
+        .photo-preview {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background-color: #f9fafb;
+        }
+        .section-title {
+            background-color: #e5e7eb;
+            font-weight: bold;
+            font-size: 0.9rem;
+            padding: 4px 10px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-2 md:p-8">
+
+    <div class="max-w-4xl mx-auto container">
+        <!-- 功能控制導覽列 -->
+        <div class="no-print mb-4 bg-blue-700 text-white rounded-lg shadow-lg p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex gap-2 text-sm sm:text-base">
+                <button onclick="switchPage('page1')" id="btn-page1" class="px-4 py-2 rounded-full font-bold bg-white text-blue-700 transition shadow">
+                    第一頁：勞安日誌
+                </button>
+                <button onclick="switchPage('page2')" id="btn-page2" class="px-4 py-2 rounded-full font-bold bg-blue-800 text-white hover:bg-blue-900 transition">
+                    第二頁：現場相片
+                </button>
+            </div>
+            <button onclick="window.print()" class="bg-green-500 text-white px-6 py-2 rounded-full font-bold hover:bg-green-600 transition shadow-md">
+                列印 / 存成 PDF
+            </button>
+        </div>
+
+        <!-- 第一頁內容：主表單 -->
+        <div id="page1" class="bg-white shadow-xl p-0">
+            <div class="text-center py-6 border-b-2 border-black">
+                <h2 class="text-2xl font-bold tracking-widest text-black">何鑫實業股份有限公司 - 勞安日誌</h2>
+            </div>
+
+            <table class="w-full border-collapse">
+                <tr>
+                    <td class="bg-custom-header w-1/4 font-bold text-center">作業名稱</td>
+                    <td class="w-1/2">
+                        <input type="text" value="每日下班前安衛、預知危險及裝備檢查" class="font-medium text-center">
+                    </td>
+                    <td class="bg-custom-header w-12 text-center font-bold">日期</td>
+                    <td class="bg-custom-tan">
+                        <input type="text" id="currentDate" class="text-center font-bold">
+                    </td>
+                </tr>
+                <tr>
+                    <td class="bg-custom-header font-bold text-center">檢驗項目</td>
+                    <td><input type="text" value="廠區內生產機械、環境" class="text-center"></td>
+                    <td class="bg-custom-header text-center font-bold">地點</td>
+                    <td><input type="text" value="廠區內" class="text-center"></td>
+                </tr>
+
+                <tr><td colspan="4" class="section-title text-blue-800">安全危害檢查狀況、部分：</td></tr>
+                <tr><td colspan="4" class="h-20 align-top"><textarea rows="2">本日暫無</textarea></td></tr>
+                
+                <tr><td colspan="4" class="section-title text-blue-800">衛生危害檢查狀況、部分：</td></tr>
+                <tr><td colspan="4" class="h-20 align-top"><textarea rows="2">本日暫無</textarea></td></tr>
+                
+                <tr><td colspan="4" class="section-title text-gray-700">改善建議：</td></tr>
+                <tr><td colspan="4" class="h-20 align-top"><textarea rows="2">本日暫無</textarea></td></tr>
+                
+                <tr><td colspan="4" class="section-title">安全可能危害：(請以 ■ 標示)</td></tr>
+                <tr>
+                    <td colspan="4">
+                        <div class="checkbox-group">
+                            <label class="checkbox-item"><input type="checkbox"> 墜落、滾落</label>
+                            <label class="checkbox-item"><input type="checkbox"> 跌倒</label>
+                            <label class="checkbox-item"><input type="checkbox"> 衝撞</label>
+                            <label class="checkbox-item"><input type="checkbox"> 物體飛落</label>
+                            <label class="checkbox-item"><input type="checkbox"> 感電</label>
+                            <label class="checkbox-item"><input type="checkbox"> 被撞</label>
+                            <label class="checkbox-item"><input type="checkbox"> 倒塌、崩塌</label>
+                            <label class="checkbox-item"><input type="checkbox"> 被夾、被捲</label>
+                            <label class="checkbox-item"><input type="checkbox"> 被切、割、擦傷</label>
+                            <label class="checkbox-item"><input type="checkbox"> 踩踏</label>
+                            <label class="checkbox-item"><input type="checkbox"> 火災</label>
+                            <label class="checkbox-item"><input type="checkbox"> 與高溫接觸</label>
+                            <label class="checkbox-item"><input type="checkbox"> 與有害物接觸</label>
+                            <label class="checkbox-item"><input type="checkbox"> 爆炸</label>
+                            <label class="checkbox-item"><input type="checkbox"> 物體破裂</label>
+                            <label class="checkbox-item"><input type="checkbox"> 交通事故</label>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr><td colspan="4" class="section-title">衛生可能危害：(請以 ■ 標示)</td></tr>
+                <tr>
+                    <td colspan="4">
+                        <div class="checkbox-group">
+                            <label class="checkbox-item"><input type="checkbox"> 粉塵呼吸道危害</label>
+                            <label class="checkbox-item"><input type="checkbox"> 化學物質中毒</label>
+                            <label class="checkbox-item"><input type="checkbox"> 磁碟機學生</label>
+                            <label class="checkbox-item"><input type="checkbox"> 細菌、病毒傳播</label>
+                            <label class="checkbox-item"><input type="checkbox"> 視力損失</label>
+                            <label class="checkbox-item"><input type="checkbox"> 噪音聽覺損失</label>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr><td colspan="4" class="section-title">日常巡檢項目：(請以 ■ 標示)</td></tr>
+                <tr>
+                    <td colspan="4">
+                        <div class="checkbox-group">
+                            <label class="checkbox-item"><input type="checkbox"> 第一棟</label>
+                            <label class="checkbox-item"><input type="checkbox"> 第二棟</label>
+                            <label class="checkbox-item"><input type="checkbox"> 第三棟</label>
+                            <label class="checkbox-item"><input type="checkbox"> 龍門</label>
+                            <label class="checkbox-item"><input type="checkbox"> 倉庫</label>
+                            <label class="checkbox-item"><input type="checkbox"> 噴漆倉庫</label>
+                            <label class="checkbox-item"><input type="checkbox"> 停車場</label>
+                            <label class="checkbox-item"><input type="checkbox"> 工具歸位</label>
+                            <label class="checkbox-item"><input type="checkbox"> 垃圾清潔</label>
+                            <label class="checkbox-item"><input type="checkbox"> 缺等巡檢</label>
+                            <label class="checkbox-item"><input type="checkbox"> 電箱關閉</label>
+                            <label class="checkbox-item"><input type="checkbox"> 天車位置巡檢</label>
+                            <label class="checkbox-item"><input type="checkbox"> 空壓機排水</label>
+                            <label class="checkbox-item"><input type="checkbox"> 鐵條布繩歸位</label>
+                            <label class="checkbox-item"><input type="checkbox"> 電線管線歸位</label>
+                            <label class="checkbox-item"><input type="checkbox"> 焊條切片亂丟</label>
+                            <label class="checkbox-item"><input type="checkbox"> 抽水機清潔</label>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr><td colspan="4" class="section-title">檢查方式：(請以 ■ 標示)</td></tr>
+                <tr>
+                    <td colspan="4">
+                        <div class="checkbox-group">
+                            <label class="checkbox-item"><input type="checkbox" checked> 目視</label>
+                            <label class="checkbox-item"><input type="checkbox"> 試運轉</label>
+                            <label class="checkbox-item"><input type="checkbox"> 拆解檢查</label>
+                            <label class="checkbox-item"><input type="checkbox"> 儀器檢查</label>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr><td colspan="4" class="section-title">紀錄方式：(請以 ■ 標示)</td></tr>
+                <tr>
+                    <td colspan="4">
+                        <div class="checkbox-group">
+                            <label class="checkbox-item"><input type="checkbox" checked> 文字紀錄</label>
+                            <label class="checkbox-item"><input type="checkbox"> 照片記錄</label>
+                            <label class="checkbox-item"><input type="checkbox"> 影片紀錄</label>
+                            <label class="checkbox-item"><input type="checkbox"> 紙本掃描上傳雲端</label>
+                            <label class="checkbox-item"><input type="checkbox"> 其他 <input type="text" class="border-b border-black ml-1 w-24"></label>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- 簽名區域依照圖片優化 -->
+                <tr>
+                    <td class="bg-white text-sm text-center">何鑫實業股份有限公司</td>
+                    <td class="bg-custom-peach font-bold text-center">巡檢人員簽名：</td>
+                    <td colspan="2" class="h-12 bg-white"></td>
+                </tr>
+                <tr>
+                    <td class="bg-white text-sm text-center">何鑫實業股份有限公司</td>
+                    <td class="bg-custom-peach font-bold text-center">主管簽名：</td>
+                    <td colspan="2" class="h-12 bg-white"></td>
+                </tr>
+                <tr>
+                    <td class="bg-white text-sm text-center">何鑫實業股份有限公司</td>
+                    <td class="bg-custom-peach font-bold text-center">副總/協理簽名：</td>
+                    <td colspan="2" class="h-12 bg-white"></td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="bg-gray-800 text-white font-bold text-center py-1">主管批示：</td>
+                </tr>
+                <tr><td colspan="4" class="h-28 bg-custom-tan"><textarea></textarea></td></tr>
+            </table>
+        </div>
+
+        <!-- 第二頁內容：照片記錄 -->
+        <div id="page2" class="bg-white shadow-xl p-6 hidden page-break">
+            <div class="text-center py-4 border-b-2 border-black mb-8">
+                <h2 class="text-2xl font-bold tracking-widest text-gray-800">何鑫實業股份有限公司 - 現場照片記錄</h2>
+            </div>
+
+            <div class="no-print mb-8 p-8 border-4 border-dashed border-blue-200 rounded-2xl text-center bg-blue-50">
+                <label class="cursor-pointer group">
+                    <div class="flex flex-col items-center">
+                        <div class="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition shadow-lg">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </div>
+                        <span class="text-xl font-bold text-blue-700">拍照或選取照片</span>
+                        <input type="file" id="photoInput" multiple accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                    </div>
+                </label>
+            </div>
+
+            <div id="photoContainer" class="photo-grid">
+                <div class="no-print text-gray-400 italic text-center col-span-2 py-20">
+                    目前尚無照片。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchPage(pageId) {
+            const p1 = document.getElementById('page1');
+            const p2 = document.getElementById('page2');
+            const b1 = document.getElementById('btn-page1');
+            const b2 = document.getElementById('btn-page2');
+
+            if (pageId === 'page1') {
+                p1.classList.remove('hidden');
+                p2.classList.add('hidden');
+                b1.className = b1.className.replace('bg-blue-800 text-white', 'bg-white text-blue-700');
+                b2.className = b2.className.replace('bg-white text-blue-700', 'bg-blue-800 text-white');
+            } else {
+                p2.classList.remove('hidden');
+                p1.classList.add('hidden');
+                b2.className = b2.className.replace('bg-blue-800 text-white', 'bg-white text-blue-700');
+                b1.className = b1.className.replace('bg-white text-blue-700', 'bg-blue-800 text-white');
+            }
+        }
+
+        function handleImageUpload(event) {
+            const files = event.target.files;
+            const container = document.getElementById('photoContainer');
+            if (container.querySelector('.italic')) container.innerHTML = '';
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const card = document.createElement('div');
+                    card.className = 'photo-card relative shadow-md';
+                    card.innerHTML = `
+                        <button onclick="this.parentElement.remove()" class="no-print absolute -top-3 -right-3 bg-red-600 text-white w-8 h-8 rounded-full border-2 border-white font-bold shadow">✕</button>
+                        <img src="${e.target.result}" class="photo-preview">
+                        <textarea placeholder="相片描述..." class="text-sm border-b border-gray-300 p-2" rows="2"></textarea>
+                    `;
+                    container.appendChild(card);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        window.onload = function() {
+            const d = new Date();
+            const year = d.getFullYear() - 1911;
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            document.getElementById('currentDate').value = `${year} 年 ${month} 月 ${day} 日`;
+
+            window.onbeforeprint = () => {
+                document.getElementById('page1').classList.remove('hidden');
+                document.getElementById('page2').classList.remove('hidden');
+            };
+            window.onafterprint = () => {
+                const isP1 = document.getElementById('btn-page1').classList.contains('bg-white');
+                if (isP1) document.getElementById('page2').classList.add('hidden');
+                else document.getElementById('page1').classList.add('hidden');
+            };
+        }
+    </script>
+</body>
+</html>
